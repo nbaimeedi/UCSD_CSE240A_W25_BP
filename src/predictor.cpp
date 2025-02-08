@@ -12,9 +12,9 @@
 //
 // TODO:Student Information
 //
-const char *studentName = "TODO";
-const char *studentID = "TODO";
-const char *email = "TODO";
+const char *studentName = "Baimeedi Nithin Reddy";
+const char *studentID = "A69029730";
+const char *email = "nbaimeedi@ucsd.edu";
 
 //------------------------------------//
 //      Predictor Configuration       //
@@ -39,6 +39,16 @@ int verbose;
 // gshare
 uint8_t *bht_gshare;
 uint64_t ghistory;
+
+int tournament_ghistorybits = 12;
+uint8_t *tournament_g_bht;
+uint64_t tournament_ghistory;
+
+int tournament_lhistory_bits = 10;
+int tournament_pc_bits = 32;
+uint8_t *tournament_l_bht;
+uint8_t *tournament_l_lht;
+uint64_t tournament_lhistory;
 
 //------------------------------------//
 //        Predictor Functions         //
@@ -118,6 +128,47 @@ void train_gshare(uint32_t pc, uint8_t outcome)
 void cleanup_gshare()
 {
   free(bht_gshare);
+}
+
+void init_tournament()
+{
+  //initialize the global predictor of the tournament predictor
+
+  //get the number of bht entries
+  int tournament_g_bht_entries = 1 << tournament_ghistorybits;
+  //assign memory for bht and use tournament_g_bht to point to the first address of bht
+  tournament_g_bht = (uint8_t *)malloc(tournament_g_bht_entries * sizeof(uint8_t));
+  //initialize each entry in bht to weakly not taken
+  int i = 0;
+  for(i = 0; i < tournament_g_bht_entries; i++)
+  {
+    tournament_g_bht[i] = WN;
+  }
+  //initialize the ghr to 0
+  tournament_ghistory = 0;
+
+  //initialize the local predictor of the tournament predictor
+
+  //get the number of bht entries
+  int tournament_l_bht_entries = 1 << tournament_lhistory_bits;
+  //assign memory to bht and use tournament_l_bht to point to the first address of bht
+  tournament_l_bht = (uint8_t *)malloc(tournament_l_bht_entries * sizeof(uint8_t));
+  //get the number of lht entries 
+  int tournament_l_lht_entries = 1 << tournament_pc_bits;
+  //assign memory to lht and use tournament_l_lht to point to the first address of lht;
+  tournament_l_lht = (uint8_t *)malloc(tournament_l_lht_entries * sizeof(uint8_t));
+  //initialize the bht entries with weakly not taken
+  int i = 0;
+  for(i = 0; i < tournament_l_bht_entries; i++)
+  {
+    tournament_l_bht[i] = WN;
+  }
+  //initialize the lht entries to 0
+  int j = 0;
+  for(j = 0; j < tournament_l_lht_entries; j ++)
+  {
+    tournament_l_lht = 0;
+  }
 }
 
 void init_predictor()
