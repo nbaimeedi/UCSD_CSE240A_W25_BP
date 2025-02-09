@@ -40,15 +40,20 @@ int verbose;
 uint8_t *bht_gshare;
 uint64_t ghistory;
 
-int tournament_ghistorybits = 12;
+int tournament_g_ghistorybits = 12;
 uint8_t *tournament_g_bht;
-uint64_t tournament_ghistory;
+uint64_t tournament_g_ghistory;
 
-int tournament_lhistory_bits = 10;
-int tournament_pc_bits = 32;
+int tournament_l_lhistory_bits = 10;
+int tournament_pc_bits = 10;
 uint8_t *tournament_l_bht;
 uint8_t *tournament_l_lht;
-uint64_t tournament_lhistory;
+uint64_t tournament_l_lhistory;
+
+int tournament_chooser_ghistorybits = 12;
+uint8_t *tournament_chooser;
+uint64_t tournament_chooser_ghistory;
+
 
 //------------------------------------//
 //        Predictor Functions         //
@@ -135,7 +140,7 @@ void init_tournament()
   //initialize the global predictor of the tournament predictor
 
   //get the number of bht entries
-  int tournament_g_bht_entries = 1 << tournament_ghistorybits;
+  int tournament_g_bht_entries = 1 << tournament_g_ghistorybits;
   //assign memory for bht and use tournament_g_bht to point to the first address of bht
   tournament_g_bht = (uint8_t *)malloc(tournament_g_bht_entries * sizeof(uint8_t));
   //initialize each entry in bht to weakly not taken
@@ -145,12 +150,12 @@ void init_tournament()
     tournament_g_bht[i] = WN;
   }
   //initialize the ghr to 0
-  tournament_ghistory = 0;
+  tournament_g_ghistory = 0;
 
   //initialize the local predictor of the tournament predictor
 
   //get the number of bht entries
-  int tournament_l_bht_entries = 1 << tournament_lhistory_bits;
+  int tournament_l_bht_entries = 1 << tournament_l_lhistory_bits;
   //assign memory to bht and use tournament_l_bht to point to the first address of bht
   tournament_l_bht = (uint8_t *)malloc(tournament_l_bht_entries * sizeof(uint8_t));
   //get the number of lht entries 
@@ -167,10 +172,83 @@ void init_tournament()
   int j = 0;
   for(j = 0; j < tournament_l_lht_entries; j ++)
   {
-    tournament_l_lht = 0;
+    tournament_l_lht[j] = 0;
   }
+
+  //Initialize chooser of the touranment predictor
+  int tournament_chooser_entries = 1 << tournament_chooser_ghistorybits;
+  tournament_chooser = (uint8_t *)malloc(tournament_chooser_entries * sizeof(uint8_t));
+  //initialize the chooser entries to 0 (take the global predictors prediction)
+  int k = 0;
+  for(k = 0; k < tournament_chooser_entries; k++)
+  {
+    tournament_chooser[k] = 0;
+  }
+  //initialize chooser's ghr to 0
+  tournament_chooser_ghistory = 0;
 }
 
+uint8_t tournament_predict(uint32_t pc)
+{
+    uint8_t tournament_g_prediction;
+    uint8_t tournament_l_prediction;
+
+    uint32_t tournament_g_bht_entries = 1 << tournament_g_ghistorybits;
+    uint32_t tournament_g_ghistory_lower_bits = tournament_g_ghistory & (tournament_g_bht_entries - 1);
+
+    uint32_t tournament_l_bht_entries = 1 << tournament_l_lhistory_bits;
+    uint32_t tournament_l_lht_entries = 1 << tournament_pc_bits;
+
+    uint32_t tournament_chooser_entries = 1 << tournament_chooser_ghistorybits;
+
+    uint32_t pc_lower_bits = pc & (tournament_l_bht_entries - 1);
+
+    //global predict
+    index = tournament_g_ghistory;
+    switch(tournament_g_bht[index])
+    {
+      case WN:
+        tournament_g_prediction = NOTTAKEN;
+      case SN:
+        tournament_g_prediction = NOTTAKEN;
+      case WT:
+        tournament_g_prediction = TAKEN;
+      case ST:
+        tournament_g_prediction = TAKEN;
+      default:
+        printf("Warning: Undefined state of entry in TOURNAMENT's GLOBAL BHT!\n");
+        tournament_g_prediction = NOTTAKEN;
+    }
+
+    //Local Predict
+    index = tournament_l_lht[pc_lower_bits];
+    switch(tournament_l_bht[index])
+    {
+      case WN:
+        tournament_l_prediction = NOTTAKEN;
+      case SN:
+        tournament_l_prediction = NOTTAKEN;
+      case WT:
+        tournament_l_prediction = TAKEN;
+      case ST:
+        tournament_l_prediction = TAKEN;
+      default:
+        printf("Warning: Undefined state of entry in TOURNAMENT's LOCAL BHT!\n");
+        tournament_l_prediction = NOTTAKEN;
+    }
+
+    //Final Prediction based on tournament's chooser output
+    index = tournament_chooser_ghistory;
+    switch(tournament_chooser[index])
+    {
+      case 0:
+        return tournament_g_prediction;
+      case 1:
+        return tournament_l_prediction;
+      default:
+        return tournament_l_prediction;
+    }
+}
 void init_predictor()
 {
   switch (bpType)
@@ -181,6 +259,7 @@ void init_predictor()
     init_gshare();
     break;
   case TOURNAMENT:
+    //init_tournament();
     break;
   case CUSTOM:
     break;
