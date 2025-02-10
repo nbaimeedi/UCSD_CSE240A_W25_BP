@@ -51,7 +51,7 @@ uint8_t *tournament_l_lht;
 uint64_t tournament_l_lhistory;
 
 int tournament_chooser_ghistorybits = 12;
-uint8_t *tournament_chooser;
+int *tournament_chooser;
 uint64_t tournament_chooser_ghistory;
 
 
@@ -163,7 +163,7 @@ void init_tournament()
   //assign memory to lht and use tournament_l_lht to point to the first address of lht;
   tournament_l_lht = (uint8_t *)malloc(tournament_l_lht_entries * sizeof(uint8_t));
   //initialize the bht entries with weakly not taken
-  int i = 0;
+  i = 0;
   for(i = 0; i < tournament_l_bht_entries; i++)
   {
     tournament_l_bht[i] = WN;
@@ -177,7 +177,7 @@ void init_tournament()
 
   //Initialize chooser of the touranment predictor
   int tournament_chooser_entries = 1 << tournament_chooser_ghistorybits;
-  tournament_chooser = (uint8_t *)malloc(tournament_chooser_entries * sizeof(uint8_t));
+  tournament_chooser = (int *)malloc(tournament_chooser_entries * sizeof(uint8_t));
   //initialize the chooser entries to 0 (take the global predictors prediction)
   int k = 0;
   for(k = 0; k < tournament_chooser_entries; k++)
@@ -204,7 +204,7 @@ uint8_t tournament_predict(uint32_t pc)
     uint32_t pc_lower_bits = pc & (tournament_l_lht_entries - 1);
 
     //global predict
-    index = tournament_g_ghistory;
+    int index = tournament_g_ghistory;
     switch(tournament_g_bht[index])
     {
       case WN:
@@ -260,7 +260,7 @@ void train_tournament(uint32_t pc, uint8_t outcome)
   uint32_t tournament_g_bht_entries = 1 << tournament_g_ghistorybits;
   uint32_t tournament_g_ghistory_lower_bits = tournament_g_ghistory & (tournament_g_bht_entries - 1);
 
-  unit32_t tournament_l_lht_entries = 1 << tournament_pc_bits;
+  uint32_t tournament_l_lht_entries = 1 << tournament_pc_bits;
   uint32_t tournament_l_bht_entries = 1 << tournament_l_lhistory_bits;
   uint32_t pc_lower_bits = pc & (tournament_l_lht_entries - 1);
 
@@ -275,7 +275,7 @@ void train_tournament(uint32_t pc, uint8_t outcome)
 
   int tournament_chooser_selection;
 
-  index = tournament_g_ghistory_lower_bits;
+  int index = tournament_g_ghistory_lower_bits;
   tournament_g_prediction = (tournament_g_bht[index] == WN)? 0 : 1;
   tournament_g_prediction = (tournament_g_bht[index] == SN)? 0 : 1;
   tournament_g_prediction = (tournament_g_bht[index] == WT)? 1 : 0;
@@ -357,10 +357,10 @@ void init_predictor()
   case STATIC:
     break;
   case GSHARE:
-    init_gshare();
+    //init_gshare();
     break;
   case TOURNAMENT:
-    //init_tournament();
+    init_tournament();
     break;
   case CUSTOM:
     break;
@@ -382,9 +382,10 @@ uint32_t make_prediction(uint32_t pc, uint32_t target, uint32_t direct)
   case STATIC:
     return TAKEN;
   case GSHARE:
-    return gshare_predict(pc);
-  case TOURNAMENT:
     return NOTTAKEN;
+    //return gshare_predict(pc);
+  case TOURNAMENT:
+    return tournament_predict(pc);
   case CUSTOM:
     return NOTTAKEN;
   default:
@@ -409,9 +410,10 @@ void train_predictor(uint32_t pc, uint32_t target, uint32_t outcome, uint32_t co
     case STATIC:
       return;
     case GSHARE:
-      return train_gshare(pc, outcome);
-    case TOURNAMENT:
       return;
+      //return train_gshare(pc, outcome);
+    case TOURNAMENT:
+      return train_tournament(pc,outcome);
     case CUSTOM:
       return;
     default:
