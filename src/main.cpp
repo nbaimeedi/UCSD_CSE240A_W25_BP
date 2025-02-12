@@ -125,28 +125,6 @@ int main(int argc, char *argv[])
   uint32_t ret = 0;
   uint32_t direct = 0;
 
-  /*
-  for (int lc = 0; lc < 20000000; lc++)
-  {
-    if (read_branch(&pc, &target, &outcome, &condition, &call, &ret, &direct))
-    {
-      //printf("Condition: %d\n",condition);
-      if (condition == 1)
-      {
-        num_branches++;
-	//printf("PC FROM TRACE: %d\n",pc);
-	uint32_t prediction = make_prediction(pc, target, direct);
-	//printf("Prediction: %d\n",prediction);
-	//printf("Outcome: %d\n",outcome);
-	if (prediction != outcome)
-	{
-	  mispredictions++;
-	}
-      }
-      train_predictor(pc, target, outcome, condition, call, ret, direct);
-    }
-  }
-  */
   // Reach each branch from the trace
   while (read_branch(&pc, &target, &outcome, &condition, &call, &ret, &direct))
   {
@@ -178,13 +156,5 @@ int main(int argc, char *argv[])
   fclose(stream);
   free(buf);
 
-  /*
-  printf("Branches:        %10d\n", num_branches);
-  printf("Incorrect:       %10d\n", mispredictions);
-  float mispredict_rate = 1000 * ((float)mispredictions / (float)num_branches);
-  printf("Misprediction Rate: %7.3f\n", mispredict_rate);
-
-  printf("Done\n");
-  */
   return 0;
 }
