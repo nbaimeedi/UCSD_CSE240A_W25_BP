@@ -4,7 +4,7 @@
 
 
 #define PERCEPTRONS 427
-#define GHISTORY 60
+#define GHISTORY 58
 
 uint32_t hash_pc(uint32_t pc)
 {
