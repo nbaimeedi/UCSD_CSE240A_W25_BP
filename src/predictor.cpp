@@ -57,7 +57,7 @@ int8_t *tournament_chooser;
 uint64_t tournament_chooser_ghistory;
 
 #define NUMBER_OF_PERCEPTRONS  427
-#define GHISTORY_LENGTH 45
+#define GHISTORY_LENGTH 55
 
 int16_t perceptron_weight[NUMBER_OF_PERCEPTRONS][GHISTORY_LENGTH+1];
 int16_t perceptron_ghistory[GHISTORY_LENGTH];
