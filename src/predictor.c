@@ -25,13 +25,7 @@ const char *email = "nbaimeedi.ucsd.edu";
 const char *bpName[4] = {"Static", "Gshare",
                          "Tournament", "Custom"};
 
-/*
-int ghistoryBits; // Number of bits used for Global History
-int lhistoryBits; // Number of bits used for Local History
-int pcIndexBits;  // Number of bits used for PC index
-int bpType;       // Branch Prediction Type
-int verbose;
-*/
+
 //------------------------------------//
 //      Predictor Data Structures     //
 //------------------------------------//
@@ -40,34 +34,7 @@ int verbose;
 //TODO: Add your own Branch Predictor data structures here
 //
 //
-/*
-uint32_t ghistory;
-uint8_t *gshareBHT;
 
-uint32_t *localPHT;
-uint8_t *localBHT;
-uint8_t *choicePT;
-uint32_t globalhistory;
-uint8_t *globalBHT;
-uint8_t localOutcome, globalOutcome;
-
-//#define USE_NEURAL1
-
-*/
-// Shifting
-/*
-void shift_prediction(uint8_t *satuate, uint8_t outcome) {
-    if (outcome == NOTTAKEN) {
-        if (*satuate != SN) {
-            (*satuate)--;
-        }
-    } else {
-        if (*satuate != ST) {
-            (*satuate)++;
-        }
-    }
-}
-*/
 // define number of bits required for indexing the BHT here.
 int ghistoryBits = 17; // Number of bits used for Global History
 int bpType;            // Branch Prediction Type
@@ -99,16 +66,7 @@ int tournament_chooser_ghistorybits = 16;
 int8_t *tournament_chooser;
 uint64_t tournament_chooser_ghistory;
 
-/*
-#define NUMBER_OF_PERCEPTRONS  427
-#define GHISTORY_LENGTH 50
 
-int16_t perceptron_weight[NUMBER_OF_PERCEPTRONS][GHISTORY_LENGTH+1];
-int16_t perceptron_ghistory[GHISTORY_LENGTH];
-int32_t perceptron_threshold;
-uint32_t perceptron_prediction = NOTTAKEN;
-uint8_t perceptron_threshold_meet = 0;
-*/
 //------------------------------------//
 //        Predictor Functions         //
 //------------------------------------//
@@ -510,78 +468,8 @@ void train_tournament(uint32_t pc, uint8_t outcome)
   //printf("Tournament L LHT[END]: %d\n",tournament_l_lht[tournament_l_lht_entries-1]);
 
 }
-/*
-uint8_t get_gshare_prediction(uint32_t pc) {
-    uint32_t gBHTIndex = (ghistory ^ pc) & ((1 << ghistoryBits) - 1);
-    uint8_t gPrediction = gshareBHT[gBHTIndex];
-    globalOutcome = (gPrediction == WN || gPrediction == SN) ? NOTTAKEN : TAKEN;
-    return globalOutcome;
-}
-
-uint8_t get_local_prediction(uint32_t pc) {
-    uint32_t localPHTIndex = pc & ((1 << pcIndexBits) - 1);
-    uint32_t localBHTIndex = localPHT[localPHTIndex];
-    uint8_t localPrediction = localBHT[localBHTIndex];
-    localOutcome = ((localPrediction == WN || localPrediction == SN) ? NOTTAKEN : TAKEN);
-    return localOutcome;
-}
-
-uint8_t get_global_prediction(uint32_t pc) {
-    uint32_t gBHTIndex = (globalhistory) & ((1 << ghistoryBits) - 1);
-    uint8_t gPrediction = globalBHT[gBHTIndex];
-    globalOutcome = ((gPrediction == WN || gPrediction == SN) ? NOTTAKEN : TAKEN);
-    return globalOutcome;
-}
-
-uint8_t get_tournament_prediction(uint32_t pc) {
-    uint32_t gBHTIndex = (globalhistory) & ((1 << ghistoryBits) - 1);
-    uint32_t predictor = choicePT[gBHTIndex];
-    get_global_prediction(pc);
-    get_local_prediction(pc);
-
-    if (predictor == WN || predictor == SN) {     // Negtive means global predictor
-        return globalOutcome;
-    } else {                                      // Positive means local predictor
-        return localOutcome;
-    }
-
-}
-
-void tournament_init() {
-    localBHT = malloc((1 << lhistoryBits) * sizeof(uint8_t));
-    localPHT = malloc((1 << pcIndexBits) * sizeof(uint32_t));
-    choicePT = malloc((1 << ghistoryBits) * sizeof(uint8_t));
-    memset(localBHT, WN, (1 << lhistoryBits) * sizeof(uint8_t));
-    memset(localPHT, 0, (1 << pcIndexBits) * sizeof(uint32_t));
-    memset(choicePT, WN, (1 << ghistoryBits) * sizeof(uint8_t));
-    globalhistory = 0;
-    globalBHT = malloc((1 << ghistoryBits) * sizeof(uint8_t));
-    memset(globalBHT, WN, (1 << ghistoryBits) * sizeof(uint8_t));
-}
 
 
-void tournament_update(uint32_t pc, uint8_t outcome) {
-
-    if (localOutcome != globalOutcome) {
-        shift_prediction(&choicePT[globalhistory],
-                         (localOutcome == outcome) ? TAKEN : NOTTAKEN
-        );
-    }
-    uint32_t localPHTIndex = pc & ((1 << pcIndexBits) - 1);
-    uint32_t localBHTIndex = localPHT[localPHTIndex];
-
-    shift_prediction(&(localBHT[localBHTIndex]), outcome);
-    localPHT[localPHTIndex] <<= 1;
-    localPHT[localPHTIndex] &= ((1 << lhistoryBits) - 1);
-    localPHT[localPHTIndex] |= outcome;
-    shift_prediction(&globalBHT[globalhistory], outcome);
-    globalhistory <<= 1;
-    globalhistory &= ((1 << ghistoryBits) - 1);
-    globalhistory |= outcome;
-    return;
-}
-
-*/
 // Initialize the predictor
 //
 void
@@ -598,15 +486,9 @@ init_predictor() {
 
         case GSHARE:
 	    init_gshare();
-            //ghistory = 0;
-            //gshareBHT = malloc((1 << ghistoryBits) * sizeof(uint8_t));
-            //memset(gshareBHT, WN, (1 << ghistoryBits) * sizeof(uint8_t));
             break;
         case CUSTOM:
 
-            //neural_path_init();
-            //tage_init();
-            //wp_init();
             perceptron_init();
 
 
@@ -632,18 +514,15 @@ make_prediction(uint32_t pc) {
 
     } else if (bpType == GSHARE) {
 	    return gshare_predict(pc);
-        //return get_gshare_prediction(pc);
+        
 
     } else if (bpType == TOURNAMENT) {
 	    return tournament_predict(pc);
-        //return get_tournament_prediction(pc);
+        
 
     } else if (bpType == CUSTOM) {
 
-        //return get_neural_prediction(pc);
-
-        //return tage_predict(pc);
-        //return wp_perdict(pc);
+        
         return perceptron_predict(pc);
 
     } else {
@@ -667,18 +546,14 @@ train_predictor(uint32_t pc, uint32_t outcome) {
             break;
         case TOURNAMENT:
 	    train_tournament(pc,outcome);
-            //tournament_update(pc, outcome);
+            
             break;
         case GSHARE:
 	    train_gshare(pc, outcome);
-            //shift_prediction(&gshareBHT[(ghistory ^ pc) & ((1 << ghistoryBits) - 1)], outcome);
-            //ghistory <<= 1;
-            //ghistory |= outcome;
+            
             break;
         case CUSTOM:
-            //neural_train(pc, outcome);
-            //tage_train(pc, outcome);
-            //wp_train(pc, outcome);
+            
             perceptron_train(pc, outcome);
         default:
             break;
